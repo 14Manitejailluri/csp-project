@@ -6,6 +6,6 @@ export const authService = {
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get("/api/auth/me", {
   withCredentials: true,
-}),,
+ }),,
   updateProfile: (data) => api.put('/auth/profile', data),
 };
