@@ -18,12 +18,16 @@ export const DonorDashboard = () => {
 
   useEffect(() => {
     analyticsService.getDonor()
-      .then((r) => setStats(r.data.data))
+      .then((r) => {
+        // getDonorAnalytics returns { stats: {...}, recentDonations: [...] }
+        const d = r.data.data;
+        setStats(d?.stats || d || null);
+      })
       .catch(() => {})
       .finally(() => setLoadingStats(false));
 
     donationService.myDonations({ limit: 4, page: 1 })
-      .then((r) => setRecentDonations(r.data.data || []))
+      .then((r) => setRecentDonations(r.data.data?.donations || (Array.isArray(r.data.data) ? r.data.data : [])))
       .catch(() => {})
       .finally(() => setLoadingDonations(false));
   }, []);
@@ -57,21 +61,21 @@ export const DonorDashboard = () => {
         />
         <StatCard
           title="Delivered"
-          value={stats?.delivered}
+          value={stats?.completedDonations}
           icon={CheckCircle2}
           color="teal"
           loading={loadingStats}
         />
         <StatCard
           title="Active"
-          value={stats?.active}
+          value={stats?.activeDonations}
           icon={Clock}
           color="amber"
           loading={loadingStats}
         />
         <StatCard
           title="Meals Rescued"
-          value={stats?.mealsRescued || stats?.totalServings}
+          value={stats?.mealsRescued}
           icon={TrendingUp}
           color="blue"
           loading={loadingStats}

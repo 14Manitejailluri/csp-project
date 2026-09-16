@@ -27,7 +27,8 @@ export const AvailablePickupsPage = () => {
         params.radiusKm = 50;
       }
       const res = await pickupService.getAvailable(params);
-      setTasks(res.data.data || []);
+      const items = res.data.data?.pickups || (Array.isArray(res.data.data) ? res.data.data : []);
+      setTasks(items);
     } catch (err) {
       toast.error('Failed to load available pickup tasks');
     } finally {

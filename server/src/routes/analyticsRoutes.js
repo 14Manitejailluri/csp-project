@@ -4,10 +4,13 @@ import {
   getNgoAnalytics,
   getVolunteerAnalytics,
   getAdminAnalytics,
+  getPlatformAnalytics,
 } from '../controllers/analyticsController.js';
 import { authenticate, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = Router();
+
+router.get('/platform', getPlatformAnalytics);
 
 router.get(
   '/donor',
@@ -38,3 +41,4 @@ router.get(
 );
 
 export default router;
+

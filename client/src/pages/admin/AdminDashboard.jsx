@@ -19,9 +19,19 @@ export const AdminDashboard = () => {
   const fetchAdminData = () => {
     setLoading(true);
     Promise.all([
-      analyticsService.getPlatform().then((r) => setStats(r.data.data)).catch(() => {}),
-      adminService.getUsers({ role: 'ngo', isVerified: 'false', limit: 5 }).then((r) => setPendingNgos(r.data.data || [])).catch(() => {}),
-      adminService.getDonations({ limit: 5 }).then((r) => setRecentDonations(r.data.data || [])).catch(() => {}),
+      analyticsService.getPlatform().then((r) => {
+        // getAdminAnalytics returns { users, donations, impact, activity }
+        const d = r.data.data;
+        if (d) {
+          setStats({
+            totalUsers: d.users?.total || 0,
+            totalDonations: d.donations?.total || 0,
+            totalMealsRescued: d.impact?.mealsRescued || 0,
+          });
+        }
+      }).catch(() => {}),
+      adminService.getUsers({ role: 'ngo', isVerified: 'false', limit: 5 }).then((r) => setPendingNgos(Array.isArray(r.data.data) ? r.data.data : [])).catch(() => {}),
+      adminService.getDonations({ limit: 5 }).then((r) => setRecentDonations(Array.isArray(r.data.data) ? r.data.data : [])).catch(() => {}),
     ]).finally(() => setLoading(false));
   };
 

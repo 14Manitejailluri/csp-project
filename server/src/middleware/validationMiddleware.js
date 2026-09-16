@@ -9,9 +9,12 @@ export const validateRequest = (req, res, next) => {
       message: err.msg,
       value: err.value,
     }));
-    return next(
-      new ApiError(422, 'Invalid input parameters submitted', extractedErrors)
-    );
+    const firstMsg = extractedErrors[0]?.message || 'Please check the entered information.';
+    return res.status(422).json({
+      success: false,
+      message: firstMsg,
+      errors: extractedErrors,
+    });
   }
   next();
 };

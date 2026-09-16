@@ -30,10 +30,11 @@ export const AvailableDonationsPage = () => {
         params.radiusKm = 50;
       }
       const res = await donationService.getAvailable(params);
-      setDonations(res.data.data || []);
+      const items = res.data.data?.donations || (Array.isArray(res.data.data) ? res.data.data : []);
+      setDonations(items);
       setPagination({
-        total: res.data.total || 0,
-        pages: res.data.pages || 1,
+        total: res.data.pagination?.total || res.data.data?.total || items.length,
+        pages: res.data.pagination?.totalPages || res.data.data?.pages || 1,
       });
     } catch (err) {
       toast.error('Failed to load available donations');

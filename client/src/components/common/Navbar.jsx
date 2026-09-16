@@ -40,12 +40,30 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-6">
             <NavLink to="/#how-it-works" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">How it Works</NavLink>
             <NavLink to="/#impact" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Impact</NavLink>
+            <NavLink to="/help" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Support & FAQs</NavLink>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
                 <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-sm font-medium px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-6 h-6 rounded-full object-cover border border-emerald-500"
+                    />
+                  ) : (
+                    <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
+                      {user?.name?.charAt(0)?.toUpperCase()}
+                    </span>
+                  )}
+                  <span>Profile</span>
+                </Link>
+                <Link
                   to={dashboardRoute[role] || '/'}
-                  className="text-sm font-medium px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="text-sm font-medium px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-sm"
                 >
                   Dashboard
                 </Link>
@@ -84,15 +102,17 @@ export const Navbar = () => {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden border-t border-slate-100 py-3 space-y-1">
+            <Link to="/help" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg">Support & FAQs</Link>
             {isAuthenticated ? (
               <>
-                <Link to={dashboardRoute[role] || '/'} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg">Dashboard</Link>
+                <Link to="/profile" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-semibold text-emerald-700">My Profile</Link>
+                <Link to={dashboardRoute[role] || '/'} onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg">Dashboard</Link>
                 <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg">Log Out</button>
               </>
             ) : (
               <>
-                <Link to="/login" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg">Log In</Link>
-                <Link to="/register" className="block px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg">Get Started</Link>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg">Log In</Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg">Get Started</Link>
               </>
             )}
           </div>

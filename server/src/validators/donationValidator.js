@@ -3,66 +3,89 @@ import { FOOD_CATEGORIES, QUANTITY_UNITS, STORAGE_CONDITIONS } from '../models/D
 
 export const createDonationValidator = [
   body('title')
-    .trim()
-    .notEmpty()
-    .withMessage('Food title is required')
-    .isLength({ min: 3, max: 150 })
-    .withMessage('Title must be between 3 and 150 characters'),
+    .optional()
+    .trim(),
+  body('foodName')
+    .optional()
+    .trim(),
+  body()
+    .custom((body) => {
+      const name = body.title || body.foodName;
+      if (!name || name.trim().length < 2) {
+        throw new Error('Food Name is required and must be at least 2 characters');
+      }
+      return true;
+    }),
   body('foodType')
     .notEmpty()
-    .withMessage('Food type category is required')
-    .isIn(FOOD_CATEGORIES)
-    .withMessage(`Food type must be one of: ${FOOD_CATEGORIES.join(', ')}`),
+    .withMessage('Food category/type is required'),
   body('quantity')
     .notEmpty()
     .withMessage('Quantity is required')
     .isFloat({ min: 0.1 })
-    .withMessage('Quantity must be greater than 0'),
+    .withMessage('Quantity must be a valid positive number'),
   body('quantityUnit')
     .optional()
-    .isIn(QUANTITY_UNITS)
-    .withMessage(`Quantity unit must be one of: ${QUANTITY_UNITS.join(', ')}`),
+    .trim(),
+  body('donorType')
+    .optional()
+    .trim(),
+  body('dietaryType')
+    .optional()
+    .trim(),
   body('preparedAt')
     .notEmpty()
-    .withMessage('Preparation date/time is required')
-    .isISO8601()
-    .withMessage('Prepared date must be a valid ISO8601 date string'),
-  body('pickupDeadline')
-    .notEmpty()
-    .withMessage('Pickup deadline is required')
-    .isISO8601()
-    .withMessage('Pickup deadline must be a valid ISO8601 date string')
-    .custom((deadline, { req }) => {
-      const pickupDate = new Date(deadline);
-      if (pickupDate <= new Date()) {
-        throw new Error('Pickup deadline must be in the future');
+    .withMessage('Prepared Date and Time is required')
+    .custom((val) => {
+      const date = new Date(val);
+      if (isNaN(date.getTime())) {
+        throw new Error('Please provide a valid prepared date/time');
+      }
+      // Cannot be in the future (allowing 5 minute clock drift buffer)
+      if (date.getTime() > Date.now() + 5 * 60 * 1000) {
+        throw new Error('Prepared time cannot be in the future');
       }
       return true;
     }),
-  body('storageCondition')
-    .optional()
-    .isIn(STORAGE_CONDITIONS)
-    .withMessage(`Storage condition must be one of: ${STORAGE_CONDITIONS.join(', ')}`),
+  body()
+    .custom((body) => {
+      const deadline = body.pickupDeadline || body.availableUntil;
+      if (!deadline) {
+        throw new Error('Available Until / Best Before date/time is required');
+      }
+      const untilDate = new Date(deadline);
+      if (isNaN(untilDate.getTime())) {
+        throw new Error('Please provide a valid Available Until date/time');
+      }
+      const preparedDate = new Date(body.preparedAt);
+      if (!isNaN(preparedDate.getTime()) && untilDate.getTime() <= preparedDate.getTime()) {
+        throw new Error('Available Until time must be after the prepared time');
+      }
+      return true;
+    }),
   body('address')
     .trim()
     .notEmpty()
-    .withMessage('Pickup address is required'),
+    .withMessage('Street address is required'),
   body('city')
     .trim()
     .notEmpty()
     .withMessage('City is required'),
-  body('state')
-    .trim()
-    .notEmpty()
-    .withMessage('State is required'),
+  body('pincode')
+    .optional()
+    .trim(),
+  body('contactNumber')
+    .optional()
+    .trim(),
+  body('pickupInstructions')
+    .optional()
+    .trim(),
   body('latitude')
-    .notEmpty()
-    .withMessage('Latitude is required')
+    .optional()
     .isFloat({ min: -90, max: 90 })
     .withMessage('Valid latitude between -90 and 90 is required'),
   body('longitude')
-    .notEmpty()
-    .withMessage('Longitude is required')
+    .optional()
     .isFloat({ min: -180, max: 180 })
     .withMessage('Valid longitude between -180 and 180 is required'),
 ];

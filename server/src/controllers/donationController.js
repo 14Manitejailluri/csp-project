@@ -9,17 +9,24 @@ export const createDonation = async (req, res, next) => {
   try {
     const {
       title,
+      foodName,
+      donorType,
+      dietaryType,
       description,
       foodType,
       quantity,
       quantityUnit,
       preparedAt,
       pickupDeadline,
+      availableUntil,
       storageCondition,
       allergens,
       address,
       city,
       state,
+      pincode,
+      contactNumber,
+      pickupInstructions,
       latitude,
       longitude,
       notes,
@@ -27,10 +34,16 @@ export const createDonation = async (req, res, next) => {
 
     // Handle image upload if provided
     let imageUrl = '';
+    let images = [];
     if (req.file) {
       imageUrl = await uploadImageToStorage(req.file);
+      images.push(imageUrl);
     } else if (req.body.imageUrl) {
       imageUrl = req.body.imageUrl;
+      images.push(imageUrl);
+    } else if (req.body.images && Array.isArray(req.body.images)) {
+      images = req.body.images.slice(0, 3);
+      imageUrl = images[0] || '';
     }
 
     let parsedAllergens = [];
@@ -46,26 +59,38 @@ export const createDonation = async (req, res, next) => {
       }
     }
 
+    const finalTitle = title || foodName || 'Surplus Food Donation';
+    const finalDeadline = new Date(pickupDeadline || availableUntil);
+    const finalPreparedAt = new Date(preparedAt || Date.now());
+    const finalLat = parseFloat(latitude) || 0;
+    const finalLng = parseFloat(longitude) || 0;
+
     const donation = await Donation.create({
       donor: req.user._id,
-      title,
+      title: finalTitle,
+      donorType: donorType || 'Restaurant',
+      dietaryType: dietaryType || 'Vegetarian',
       description: description || '',
-      foodType,
-      quantity: parseFloat(quantity),
-      quantityUnit: quantityUnit || 'kg',
-      preparedAt: new Date(preparedAt),
-      pickupDeadline: new Date(pickupDeadline),
+      foodType: foodType || 'Cooked food',
+      quantity: parseFloat(quantity) || 1,
+      quantityUnit: quantityUnit || 'meals',
+      preparedAt: finalPreparedAt,
+      pickupDeadline: finalDeadline,
       storageCondition: storageCondition || 'Room Temperature',
       allergens: parsedAllergens,
       imageUrl: imageUrl || '',
+      images: images,
+      contactNumber: contactNumber || req.user.phone || '',
+      pickupInstructions: pickupInstructions || notes || '',
       location: {
         type: 'Point',
-        coordinates: [parseFloat(longitude), parseFloat(latitude)],
-        address,
-        city,
-        state,
+        coordinates: [finalLng, finalLat],
+        address: address || 'Main Donor Location',
+        city: city || 'City',
+        state: state || '',
+        pincode: pincode || '',
       },
-      notes: notes || '',
+      notes: notes || pickupInstructions || '',
       status: 'AVAILABLE',
     });
 
@@ -80,7 +105,7 @@ export const createDonation = async (req, res, next) => {
     return ApiResponse.created(
       res,
       { donation: populatedDonation },
-      'Donation published successfully and is now available for nearby NGOs.'
+      'Surplus food posted successfully and is now available for NGO requests.'
     );
   } catch (error) {
     next(error);

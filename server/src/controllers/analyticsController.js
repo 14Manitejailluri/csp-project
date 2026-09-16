@@ -149,3 +149,32 @@ export const getAdminAnalytics = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getPlatformAnalytics = async (req, res, next) => {
+  try {
+    const [totalUsers, totalDonations, completedDonations] = await Promise.all([
+      User.countDocuments(),
+      Donation.countDocuments(),
+      Donation.find({ status: { $in: ['COMPLETED', 'DELIVERED', 'PICKED_UP'] } }),
+    ]);
+
+    const impact = calculateImpactStats(completedDonations);
+
+    return ApiResponse.success(
+      res,
+      {
+        totalUsers,
+        totalDonations,
+        completedRescues: completedDonations.length,
+        foodRescuedKg: impact.foodRescuedKg,
+        mealsRescued: impact.mealsRescued,
+        co2OffsetKg: impact.co2OffsetKg,
+        waterSavedLiters: impact.waterSavedLiters,
+      },
+      'Platform public analytics retrieved'
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+

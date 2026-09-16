@@ -43,6 +43,30 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    avatar: {
+      type: String,
+      default: '',
+    },
+    donorType: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    registrationNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    contactPerson: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    availability: {
+      type: String,
+      trim: true,
+      default: 'Flexible',
+    },
     isVerified: {
       type: Boolean,
       default: function () {
@@ -70,6 +94,7 @@ const UserSchema = new mongoose.Schema(
       address: { type: String, default: '' },
       city: { type: String, default: '' },
       state: { type: String, default: '' },
+      pincode: { type: String, default: '' },
     },
   },
   {

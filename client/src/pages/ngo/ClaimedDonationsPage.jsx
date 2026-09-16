@@ -19,10 +19,11 @@ export const ClaimedDonationsPage = () => {
     setLoading(true);
     try {
       const res = await donationService.myClaimed(filters);
-      setDonations(res.data.data || []);
+      const items = res.data.data?.claims || (Array.isArray(res.data.data) ? res.data.data : []);
+      setDonations(items);
       setPagination({
-        total: res.data.total || 0,
-        pages: res.data.pages || 1,
+        total: res.data.pagination?.total || res.data.total || items.length,
+        pages: res.data.pagination?.totalPages || res.data.pages || 1,
       });
     } catch (err) {
       toast.error('Failed to load claimed donations');
@@ -66,7 +67,7 @@ export const ClaimedDonationsPage = () => {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {donations.map((d) => (
-              <DonationCard key={d._id} donation={d} />
+              <DonationCard key={d._id} donation={d.donation || d} />
             ))}
           </div>
 

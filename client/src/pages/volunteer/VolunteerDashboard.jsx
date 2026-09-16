@@ -20,8 +20,12 @@ export const VolunteerDashboard = () => {
   const fetchDashboardData = () => {
     setLoading(true);
     Promise.all([
-      analyticsService.getVolunteer().then((r) => setStats(r.data.data)).catch(() => {}),
-      pickupService.myPickups({ status: 'ASSIGNED,PICKED_UP', limit: 4 }).then((r) => setActiveTasks(r.data.data || [])).catch(() => {}),
+      analyticsService.getVolunteer().then((r) => {
+        // getVolunteerAnalytics returns { stats: { availablePickups, activePickups, completedPickups, ... } }
+        const d = r.data.data;
+        setStats(d?.stats || d || null);
+      }).catch(() => {}),
+      pickupService.myPickups({ status: 'ASSIGNED,PICKED_UP', limit: 4 }).then((r) => setActiveTasks(r.data.data?.pickups || (Array.isArray(r.data.data) ? r.data.data : []))).catch(() => {}),
     ]).finally(() => setLoading(false));
   };
 
@@ -69,28 +73,28 @@ export const VolunteerDashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Assigned"
-          value={stats?.totalAssigned}
+          value={stats?.totalDeliveries}
           icon={Truck}
           color="blue"
           loading={loading}
         />
         <StatCard
           title="Active Missions"
-          value={stats?.activeTasks}
+          value={stats?.activePickups}
           icon={Clock}
           color="amber"
           loading={loading}
         />
         <StatCard
           title="Completed Deliveries"
-          value={stats?.completedDeliveries}
+          value={stats?.completedPickups}
           icon={CheckCircle2}
           color="teal"
           loading={loading}
         />
         <StatCard
           title="Total Rescued (kg)"
-          value={stats?.totalRescuedKg ? `${stats.totalRescuedKg} kg` : '0 kg'}
+          value={stats?.foodRescuedKg != null ? `${stats.foodRescuedKg} kg` : '0 kg'}
           icon={TrendingUp}
           color="emerald"
           loading={loading}

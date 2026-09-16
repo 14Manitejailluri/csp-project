@@ -11,8 +11,10 @@ export const AuthProvider = ({ children }) => {
   const fetchMe = useCallback(async () => {
     try {
       const res = await authService.getMe();
-      setUser(res.data.data);
+      const userData = res.data?.data?.user || res.data?.data;
+      setUser(userData || null);
     } catch {
+      localStorage.removeItem('token');
       setUser(null);
     } finally {
       setLoading(false);
@@ -25,23 +27,48 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const res = await authService.login(credentials);
-    setUser(res.data.data);
-    return res.data.data;
+    const { user: userData, token } = res.data?.data || {};
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    const currentUser = userData || res.data?.data;
+    setUser(currentUser);
+    return currentUser;
   };
 
   const register = async (data) => {
     const res = await authService.register(data);
-    setUser(res.data.data);
-    return res.data.data;
+    const { user: userData, token } = res.data?.data || {};
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    const currentUser = userData || res.data?.data;
+    setUser(currentUser);
+    return currentUser;
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+    } catch {
+      // ignore network errors during logout
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+    }
   };
 
   const updateUser = (updates) => {
-    setUser((prev) => ({ ...prev, ...updates }));
+    setUser((prev) => (prev ? { ...prev, ...updates } : null));
+  };
+
+  const updateProfile = async (profileData) => {
+    const res = await authService.updateProfile(profileData);
+    const updatedUser = res.data?.data?.user || res.data?.data;
+    if (updatedUser) {
+      setUser(updatedUser);
+    }
+    return updatedUser;
   };
 
   const value = {
@@ -51,6 +78,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
+    updateProfile,
+    fetchMe,
     isAuthenticated: !!user,
     role: user?.role,
     isDonor: user?.role === 'donor',

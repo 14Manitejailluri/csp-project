@@ -18,9 +18,13 @@ export const NgoDashboard = () => {
 
   useEffect(() => {
     Promise.all([
-      analyticsService.getNgo().then((r) => setStats(r.data.data)).catch(() => {}),
-      donationService.getAvailable({ limit: 4 }).then((r) => setAvailableDonations(r.data.data || [])).catch(() => {}),
-      donationService.myClaimed({ limit: 4 }).then((r) => setClaimedDonations(r.data.data || [])).catch(() => {}),
+      analyticsService.getNgo().then((r) => {
+        // getNgoAnalytics returns { stats: { totalClaimed, availableNearby, ...impact } }
+        const d = r.data.data;
+        setStats(d?.stats || d || null);
+      }).catch(() => {}),
+      donationService.getAvailable({ limit: 4 }).then((r) => setAvailableDonations(r.data.data?.donations || (Array.isArray(r.data.data) ? r.data.data : []))).catch(() => {}),
+      donationService.myClaimed({ limit: 4 }).then((r) => setClaimedDonations(r.data.data?.claims || (Array.isArray(r.data.data) ? r.data.data : []))).catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -54,22 +58,22 @@ export const NgoDashboard = () => {
           loading={loading}
         />
         <StatCard
-          title="In Transit / Picked"
-          value={stats?.inProgress}
+          title="In Progress"
+          value={stats?.activeDonations}
           icon={Clock}
           color="amber"
           loading={loading}
         />
         <StatCard
           title="Successfully Received"
-          value={stats?.delivered}
+          value={stats?.completedDonations}
           icon={CheckCircle2}
           color="teal"
           loading={loading}
         />
         <StatCard
           title="Meals Distributed"
-          value={stats?.mealsDistributed || stats?.totalServings}
+          value={stats?.mealsRescued}
           icon={TrendingUp}
           color="emerald"
           loading={loading}
@@ -128,7 +132,7 @@ export const NgoDashboard = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {claimedDonations.map((d) => (
-              <DonationCard key={d._id} donation={d} />
+              <DonationCard key={d._id} donation={d.donation || d} />
             ))}
           </div>
         )}

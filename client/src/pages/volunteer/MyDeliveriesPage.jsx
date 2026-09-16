@@ -18,7 +18,8 @@ export const MyDeliveriesPage = () => {
       const params = {};
       if (statusFilter) params.status = statusFilter;
       const res = await pickupService.myPickups(params);
-      setPickups(res.data.data || []);
+      const items = res.data.data?.pickups || (Array.isArray(res.data.data) ? res.data.data : []);
+      setPickups(items);
     } catch (err) {
       toast.error('Failed to load your deliveries');
     } finally {

@@ -21,10 +21,11 @@ export const MyDonationsPage = () => {
     setLoading(true);
     try {
       const res = await donationService.myDonations(filters);
-      setDonations(res.data.data || []);
+      // paginated response: { data: [...], pagination: { total, totalPages, page, limit } }
+      setDonations(Array.isArray(res.data.data) ? res.data.data : []);
       setPagination({
-        total: res.data.total || 0,
-        pages: res.data.pages || 1,
+        total: res.data.pagination?.total || 0,
+        pages: res.data.pagination?.totalPages || 1,
       });
     } catch (err) {
       toast.error('Failed to load donations');

@@ -193,3 +193,65 @@ export const getReports = async (req, res, next) => {
     next(error);
   }
 };
+
+export const verifyDonation = async (req, res, next) => {
+  try {
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) {
+      return next(ApiError.notFound('Donation not found'));
+    }
+
+    donation.verificationStatus = 'VERIFIED';
+    donation.verifiedBy = req.user._id;
+    donation.verifiedAt = new Date();
+    donation.rejectionReason = '';
+    if (donation.status === 'PENDING_VERIFICATION' || donation.status === 'REJECTED') {
+      donation.status = 'AVAILABLE';
+    }
+    await donation.save();
+
+    await createNotification({
+      recipient: donation.donor,
+      title: 'Donation Verified! ✅',
+      message: `Your food donation "${donation.title}" has been verified by the safety team and is now available for NGO requests.`,
+      type: 'VERIFICATION_UPDATE',
+      relatedDonation: donation._id,
+    });
+
+    return ApiResponse.success(res, { donation }, 'Donation verified successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rejectDonation = async (req, res, next) => {
+  try {
+    const { reason, rejectionReason } = req.body;
+    const finalReason = reason || rejectionReason || 'Information incomplete or photo unclear';
+
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) {
+      return next(ApiError.notFound('Donation not found'));
+    }
+
+    donation.verificationStatus = 'REJECTED';
+    donation.status = 'REJECTED';
+    donation.rejectionReason = finalReason;
+    donation.verifiedBy = req.user._id;
+    donation.verifiedAt = new Date();
+    await donation.save();
+
+    await createNotification({
+      recipient: donation.donor,
+      title: 'Donation Verification Update ⚠️',
+      message: `Your donation "${donation.title}" was not approved: ${finalReason}. Please update the listing details or photo.`,
+      type: 'VERIFICATION_UPDATE',
+      relatedDonation: donation._id,
+    });
+
+    return ApiResponse.success(res, { donation }, 'Donation rejected with feedback');
+  } catch (error) {
+    next(error);
+  }
+};
+

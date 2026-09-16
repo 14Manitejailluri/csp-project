@@ -2,7 +2,8 @@ import api from './api';
 
 export const donationService = {
   getAll: (params) => api.get('/donations', { params }),
-  getNearby: (params) => api.get('/donations/nearby', { params }),
+  getAvailable: (params) => api.get('/donations/available', { params }),
+  getNearby: (params) => api.get('/donations/available', { params }),
   getById: (id) => api.get(`/donations/${id}`),
   create: (formData) =>
     api.post('/donations', formData, {
@@ -13,5 +14,7 @@ export const donationService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   cancel: (id) => api.patch(`/donations/${id}/cancel`),
-  myDonations: (params) => api.get('/donations/my', { params }),
+  myDonations: (params) => api.get('/donations', { params }),
+  myClaimed: (params) => api.get('/claims', { params }),
+  claim: (donationId, notes = '') => api.post('/claims', { donationId, notes }),
 };

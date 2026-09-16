@@ -5,7 +5,24 @@ import { generateToken, setAuthCookie, clearAuthCookie } from '../utils/token.js
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, phone, organizationName, location } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      organizationName,
+      donorType,
+      registrationNumber,
+      contactPerson,
+      availability,
+      avatar,
+      location,
+      address,
+      city,
+      state,
+      pincode,
+    } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
@@ -19,20 +36,30 @@ export const register = async (req, res, next) => {
       role: role || 'donor',
       phone: phone || '',
       organizationName: organizationName || '',
+      donorType: donorType || (role === 'donor' ? 'Restaurant' : ''),
+      registrationNumber: registrationNumber || '',
+      contactPerson: contactPerson || '',
+      availability: availability || 'Flexible',
+      avatar: avatar || '',
     };
 
-    if (location && location.coordinates) {
-      userData.location = {
-        type: 'Point',
-        coordinates: [
-          parseFloat(location.coordinates[0] || 0),
-          parseFloat(location.coordinates[1] || 0),
-        ],
-        address: location.address || '',
-        city: location.city || '',
-        state: location.state || '',
-      };
-    }
+    const locAddress = location?.address || address || '';
+    const locCity = location?.city || city || '';
+    const locState = location?.state || state || '';
+    const locPincode = location?.pincode || pincode || '';
+    const coords = location?.coordinates || [0, 0];
+
+    userData.location = {
+      type: 'Point',
+      coordinates: [
+        parseFloat(coords[0] || 0),
+        parseFloat(coords[1] || 0),
+      ],
+      address: locAddress,
+      city: locCity,
+      state: locState,
+      pincode: locPincode,
+    };
 
     const user = await User.create(userData);
     const token = generateToken(user._id, user.role);
@@ -49,9 +76,16 @@ export const register = async (req, res, next) => {
           role: user.role,
           phone: user.phone,
           organizationName: user.organizationName,
+          donorType: user.donorType,
+          registrationNumber: user.registrationNumber,
+          contactPerson: user.contactPerson,
+          availability: user.availability,
+          avatar: user.avatar,
           isVerified: user.isVerified,
           isActive: user.isActive,
           location: user.location,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
         token,
       },
@@ -95,9 +129,16 @@ export const login = async (req, res, next) => {
           role: user.role,
           phone: user.phone,
           organizationName: user.organizationName,
+          donorType: user.donorType,
+          registrationNumber: user.registrationNumber,
+          contactPerson: user.contactPerson,
+          availability: user.availability,
+          avatar: user.avatar,
           isVerified: user.isVerified,
           isActive: user.isActive,
           location: user.location,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
         token,
       },
@@ -132,27 +173,49 @@ export const getMe = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, phone, organizationName, location } = req.body;
+    const {
+      name,
+      phone,
+      organizationName,
+      donorType,
+      registrationNumber,
+      contactPerson,
+      availability,
+      avatar,
+      location,
+      address,
+      city,
+      state,
+      pincode,
+    } = req.body;
+
     const user = await User.findById(req.user._id);
 
     if (!user) {
       return next(ApiError.notFound('User not found'));
     }
 
-    if (name) user.name = name;
+    if (name !== undefined) user.name = name;
     if (phone !== undefined) user.phone = phone;
     if (organizationName !== undefined) user.organizationName = organizationName;
+    if (donorType !== undefined) user.donorType = donorType;
+    if (registrationNumber !== undefined) user.registrationNumber = registrationNumber;
+    if (contactPerson !== undefined) user.contactPerson = contactPerson;
+    if (availability !== undefined) user.availability = availability;
+    if (avatar !== undefined) user.avatar = avatar;
 
-    if (location) {
+    if (location || address !== undefined || city !== undefined || state !== undefined || pincode !== undefined) {
+      const existingLoc = user.location || { type: 'Point', coordinates: [0, 0] };
       user.location = {
         type: 'Point',
         coordinates: [
-          parseFloat(location.coordinates?.[0] || user.location.coordinates[0]),
-          parseFloat(location.coordinates?.[1] || user.location.coordinates[1]),
+          parseFloat(location?.coordinates?.[0] ?? existingLoc.coordinates?.[0] ?? 0),
+          parseFloat(location?.coordinates?.[1] ?? existingLoc.coordinates?.[1] ?? 0),
         ],
-        address: location.address !== undefined ? location.address : user.location.address,
-        city: location.city !== undefined ? location.city : user.location.city,
-        state: location.state !== undefined ? location.state : user.location.state,
+        address: address !== undefined ? address : (location?.address !== undefined ? location.address : (existingLoc.address || '')),
+        city: city !== undefined ? city : (location?.city !== undefined ? location.city : (existingLoc.city || '')),
+        state: state !== undefined ? state : (location?.state !== undefined ? location.state : (existingLoc.state || '')),
+        pincode: pincode !== undefined ? pincode : (location?.pincode !== undefined ? location.pincode : (existingLoc.pincode || '')),
       };
     }
 

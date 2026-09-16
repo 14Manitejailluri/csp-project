@@ -9,9 +9,13 @@ import DashboardLayout from './layouts/DashboardLayout';
 
 // Public pages
 import LandingPage from './pages/LandingPage';
+import AboutPage from './pages/AboutPage';
+import ImpactPage from './pages/ImpactPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import ProfilePage from './pages/ProfilePage';
+import HelpPage from './pages/HelpPage';
 
 // Donor pages
 import DonorDashboard from './pages/donor/DonorDashboard';
@@ -24,6 +28,7 @@ import DonationDetailsPage from './pages/donor/DonationDetailsPage';
 import NgoDashboard from './pages/ngo/NgoDashboard';
 import AvailableDonationsPage from './pages/ngo/AvailableDonationsPage';
 import ClaimedDonationsPage from './pages/ngo/ClaimedDonationsPage';
+import SavedDonationsPage from './pages/ngo/SavedDonationsPage';
 
 // Volunteer pages
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
@@ -35,6 +40,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import DonationManagementPage from './pages/admin/DonationManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
+import AdminReportsPage from './pages/admin/AdminReportsPage';
 
 function App() {
   return (
@@ -65,9 +71,12 @@ function App() {
       />
 
       <Routes>
-        {/* Public landing */}
+        {/* Public landing, about, impact & public help */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/impact" element={<ImpactPage />} />
+          <Route path="/help" element={<HelpPage />} />
         </Route>
 
         {/* Auth routes */}
@@ -78,6 +87,11 @@ function App() {
 
         {/* Unauthorized page */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* Shared Authenticated Routes (Profile & Help inside DashboardLayout) */}
+        <Route element={<DashboardLayout allowedRoles={['donor', 'ngo', 'volunteer', 'admin']} />}>
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
         {/* Donor routes */}
         <Route
@@ -101,6 +115,7 @@ function App() {
           <Route path="dashboard" element={<NgoDashboard />} />
           <Route path="available" element={<AvailableDonationsPage />} />
           <Route path="claimed" element={<ClaimedDonationsPage />} />
+          <Route path="saved" element={<SavedDonationsPage />} />
           <Route path="donations/:id" element={<DonationDetailsPage />} />
         </Route>
 
@@ -125,6 +140,7 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="donations" element={<DonationManagementPage />} />
+          <Route path="moderation" element={<AdminReportsPage />} />
           <Route path="reports" element={<ReportsPage />} />
         </Route>
 

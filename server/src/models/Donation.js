@@ -1,5 +1,19 @@
 import mongoose from 'mongoose';
 
+export const DONOR_TYPES = [
+  'Hostel',
+  'Restaurant',
+  'Hotel',
+  'Marriage/Function Hall',
+  'College',
+  'Canteen',
+  'Event Organizer',
+  'Individual',
+  'Other',
+];
+
+export const DIETARY_TYPES = ['Vegetarian', 'Non-Vegetarian', 'Vegan'];
+
 export const FOOD_CATEGORIES = [
   'Cooked food',
   'Packaged food',
@@ -10,7 +24,7 @@ export const FOOD_CATEGORIES = [
   'Other',
 ];
 
-export const QUANTITY_UNITS = ['kg', 'lbs', 'servings', 'packets', 'boxes', 'liters', 'units'];
+export const QUANTITY_UNITS = ['meals', 'servings', 'kg', 'lbs', 'packets', 'boxes', 'liters', 'units'];
 
 export const STORAGE_CONDITIONS = [
   'Room Temperature',
@@ -21,12 +35,17 @@ export const STORAGE_CONDITIONS = [
 ];
 
 export const DONATION_STATUSES = [
+  'PENDING_VERIFICATION',
+  'VERIFIED',
   'AVAILABLE',
+  'REQUESTED',
   'CLAIMED',
   'ASSIGNED',
   'PICKED_UP',
   'DELIVERED',
+  'COMPLETED',
   'CANCELLED',
+  'REJECTED',
   'EXPIRED',
 ];
 
@@ -44,6 +63,23 @@ const DonationSchema = new mongoose.Schema(
       trim: true,
       maxlength: [150, 'Title cannot exceed 150 characters'],
     },
+    foodName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    donorType: {
+      type: String,
+      enum: DONOR_TYPES,
+      default: 'Restaurant',
+      index: true,
+    },
+    dietaryType: {
+      type: String,
+      enum: DIETARY_TYPES,
+      default: 'Vegetarian',
+      index: true,
+    },
     description: {
       type: String,
       trim: true,
@@ -53,8 +89,13 @@ const DonationSchema = new mongoose.Schema(
     foodType: {
       type: String,
       enum: FOOD_CATEGORIES,
-      required: [true, 'Please specify the food type'],
+      required: [true, 'Please specify the food category/type'],
       index: true,
+    },
+    foodCategory: {
+      type: String,
+      trim: true,
+      default: 'Cooked food',
     },
     quantity: {
       type: Number,
@@ -64,7 +105,7 @@ const DonationSchema = new mongoose.Schema(
     quantityUnit: {
       type: String,
       enum: QUANTITY_UNITS,
-      default: 'kg',
+      default: 'meals',
     },
     preparedAt: {
       type: Date,
@@ -72,8 +113,14 @@ const DonationSchema = new mongoose.Schema(
     },
     pickupDeadline: {
       type: Date,
-      required: [true, 'Please provide pickup deadline'],
+      required: [true, 'Please provide available-until / pickup deadline date/time'],
       index: true,
+    },
+    availableUntil: {
+      type: Date,
+      default: function () {
+        return this.pickupDeadline;
+      },
     },
     storageCondition: {
       type: String,
@@ -85,6 +132,43 @@ const DonationSchema = new mongoose.Schema(
       default: [],
     },
     imageUrl: {
+      type: String,
+      default: '',
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    contactNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    pickupInstructions: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    safetyConfirmed: {
+      type: Boolean,
+      default: true,
+    },
+    verificationStatus: {
+      type: String,
+      enum: ['PENDING_VERIFICATION', 'VERIFIED', 'REJECTED'],
+      default: 'VERIFIED',
+      index: true,
+    },
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
+    rejectionReason: {
       type: String,
       default: '',
     },
@@ -102,7 +186,7 @@ const DonationSchema = new mongoose.Schema(
       },
       address: {
         type: String,
-        required: [true, 'Address is required'],
+        required: [true, 'Street address is required'],
         trim: true,
       },
       city: {
@@ -112,7 +196,12 @@ const DonationSchema = new mongoose.Schema(
       },
       state: {
         type: String,
-        required: [true, 'State is required'],
+        default: '',
+        trim: true,
+      },
+      pincode: {
+        type: String,
+        default: '',
         trim: true,
       },
     },
@@ -146,6 +235,10 @@ const DonationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
     notes: {
       type: String,
       default: '',
@@ -153,6 +246,8 @@ const DonationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
@@ -162,3 +257,4 @@ DonationSchema.index({ status: 1, pickupDeadline: 1 });
 DonationSchema.index({ donor: 1, createdAt: -1 });
 
 export const Donation = mongoose.model('Donation', DonationSchema);
+
