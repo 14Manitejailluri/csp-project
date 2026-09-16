@@ -9,15 +9,17 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch the current user on mount
   const fetchMe = useCallback(async () => {
-    try {
-      const res = await authService.getMe();
-      setUser(res.data.data);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  try {
+    const res = await authService.getMe();
+    const userData = res.data.data?.user || res.data.data || res.data.user;
+    setUser(userData);
+  } catch (err) {
+    console.log("getMe failed:", err.message);
+    setUser(null);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchMe();
