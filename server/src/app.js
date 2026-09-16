@@ -27,14 +27,19 @@ app.use(
 );
 
 // CORS configuration
-app.use(
-  cors({
-    origin: ['https://csp-project-nu.vercel.app', 'http://localhost:5173', 'http://127.0.0.1:5173'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow all vercel and localhost
+    if (!origin) return callback(null, true);
+    if (origin.includes('vercel.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Request parsing
 app.use(express.json({ limit: '10mb' }));
