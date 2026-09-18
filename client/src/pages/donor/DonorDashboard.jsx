@@ -27,7 +27,13 @@ export const DonorDashboard = () => {
       .finally(() => setLoadingStats(false));
 
     donationService.myDonations({ limit: 4, page: 1 })
+<<<<<<< HEAD
       .then((r) => setRecentDonations(r.data.data?.donations || (Array.isArray(r.data.data) ? r.data.data : [])))
+=======
+      .then((r) => const d = r.data.data;
+const list = Array.isArray(d) ? d : d?.donations || d?.items || [];
+setRecentDonations(list);
+>>>>>>> ca36a9b090a98e4442844bd6c9435139a2a64837
       .catch(() => {})
       .finally(() => setLoadingDonations(false));
   }, []);

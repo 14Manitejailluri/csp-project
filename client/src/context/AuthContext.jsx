@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch the current user on mount
   const fetchMe = useCallback(async () => {
+<<<<<<< HEAD
     try {
       const res = await authService.getMe();
       const userData = res.data?.data?.user || res.data?.data;
@@ -20,6 +21,19 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+=======
+  try {
+    const res = await authService.getMe();
+    const userData = res.data.data?.user || res.data.data || res.data.user;
+    setUser(userData);
+  } catch (err) {
+    console.log("getMe failed:", err.message);
+    setUser(null);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+>>>>>>> ca36a9b090a98e4442844bd6c9435139a2a64837
 
   useEffect(() => {
     fetchMe();
